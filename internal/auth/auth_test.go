@@ -28,19 +28,45 @@ func TestGetAPIKey_NoAuthHeader(t *testing.T) {
 }
 
 func TestGetAPIKey_MalformedHeader(t *testing.T) {
-	cases := []http.Header{
-		// wrong prefix
-		func() http.Header { h := http.Header{}; h.Set("Authorization", "Bearer abc"); return h }(),
-		// missing token
-		func() http.Header { h := http.Header{}; h.Set("Authorization", "ApiKey"); return h }(),
-		// extra spaces but no token
-		func() http.Header { h := http.Header{}; h.Set("Authorization", "ApiKey "); return h }(),
+	cases := []struct {
+		name    string
+		headers http.Header
+	}{
+		{
+			name: "wrong prefix",
+			headers: func() http.Header {
+				h := http.Header{}
+				h.Set("Authorization", "Bearer abc")
+				return h
+			}(),
+		},
+		{
+			name: "missing token",
+			headers: func() http.Header {
+				h := http.Header{}
+				h.Set("Authorization", "ApiKey")
+				return h
+			}(),
+		},
 	}
 
-	for i, headers := range cases {
-		_, err := GetAPIKey(headers)
+	for _, c := range cases {
+		_, err := GetAPIKey(c.headers)
 		if err == nil || err == ErrNoAuthHeaderIncluded {
-			t.Errorf("case %d: expected malformed header error, got %v", i, err)
+			t.Errorf("%s: expected malformed-header error, got %v", c.name, err)
 		}
+	}
+}
+
+func TestGetAPIKey_EmptyToken(t *testing.T) {
+	headers := http.Header{}
+	headers.Set("Authorization", "ApiKey ")
+
+	got, err := GetAPIKey(headers)
+	if err != nil {
+		t.Fatalf("expected no error for empty token, got %v", err)
+	}
+	if got != "" {
+		t.Errorf("expected empty key, got %q", got)
 	}
 }
