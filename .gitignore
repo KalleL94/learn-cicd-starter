@@ -1,4 +1,5 @@
 out
 .env
+.vscode
 learn-cicd-starter
 notely
