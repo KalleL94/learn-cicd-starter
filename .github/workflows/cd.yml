@@ -27,7 +27,7 @@ jobs:
       - name: Build production binary
         run: scripts/buildprod.sh
 
-      - name: Authenicate to Google Cloud
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
@@ -49,3 +49,13 @@ jobs:
         run: |
           gcloud artifacts docker images list \
             ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}
+
+      - name: Deploy to Cloud Run
+        run: |
+          TAG="latest-${GITHUB_SHA:0:8}"
+          gcloud run deploy notely \
+            --image ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}:${TAG} \
+            --region ${GCP_REGION} \
+            --allow-unauthenticated \
+            --project ${GCP_PROJECT} \
+            --max-instances=4
