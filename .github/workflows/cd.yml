@@ -33,7 +33,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Install gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.GCP_PROJECT }}
           export_default_credentials: true
@@ -41,7 +41,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           gcloud builds submit \
-            --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}:latest:${GITHUB_SHA:0:8} \
+            --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}:${GITHUB_SHA:0:8} \
             .
 
       - name: Verify pushed images
