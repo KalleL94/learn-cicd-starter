@@ -41,7 +41,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           gcloud builds submit \
-            --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}:latest:${GITHUB_SHA::8} \
+            --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${AR_REPO}/${IMAGE_NAME}:latest:${GITHUB_SHA:0:8} \
             .
 
       - name: Verify pushed images
