@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+env:
+  GCP_PROJECT: notely-464907
+  GCP_REGION: us-central1
+  AR_REPO: notely-ar-repo
+  IMAGE_NAME: notely
+
 jobs:
   Deploy:
     runs-on: ubuntu-latest
@@ -20,3 +26,25 @@ jobs:
 
       - name: Build production binary
         run: scripts/buildprod.sh
+
+      - name: Authenicate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Install gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GCP_PROJECT }}
+          export_default_credentials: true
+
+      - name: Build and push Docker image
+        run: |
+          gcloud builds submit \
+            --tag ${env.GCP_REGION}-docker.pkg.dev/${env.GCP_PROJECT}/${env.AR_REPO}/${env.IMAGE_NAME}:latest:${GITHUB_SHA::8} \
+            .
+
+      - name: Verify pushed images
+        run: |
+          gcloud container images list \
+            ${env.GCP_REGION}-docker.pkg.dev/${env.GCP_PROJECT}/${env.AR_REPO}
